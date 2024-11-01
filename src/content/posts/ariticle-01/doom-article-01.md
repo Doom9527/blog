@@ -1,5 +1,5 @@
 ---
-title: 在Spring Boot中同时使用Neo4j Java Driver和Spring Data Neo4j
+title: 结合Spring Data Neo4j与Java Driver在Spring Boot中高效处理复杂Neo4j查询
 published: 2024-10-31
 description: ''
 image: "./ling.jpg"
@@ -9,7 +9,7 @@ draft: false
 lang: 'zh_CN'
 ---
 
-# 在Spring Boot中同时使用Neo4j Java Driver和Spring Data Neo4j
+# 结合Spring Data Neo4j与Java Driver在Spring Boot中高效处理复杂Neo4j查询
 
 ## Neo4j Java Driver和Spring Data Neo4j
 
@@ -20,7 +20,7 @@ lang: 'zh_CN'
 
 在程序中，仅使用Spring Data Neo4j只能处理基本操作，如创建节点、关系、删除节点和删除关系等。然而，随着程序的扩展，需要根据多个未知属性对查询节点进行过滤，并处理Cypher查询返回的复杂结果（如节点-关系-节点的集合）。Spring Data Neo4j在处理复杂查询和操作时不够友好，因此尝试在Spring Boot中引入Neo4j Java Driver，以处理更复杂的查询和操作。
 
-## 检查依赖版本
+### 检查依赖版本
 
 在添加Neo4j Java Driver依赖之前，需要检查其与Spring Data Neo4j的兼容性。由于Spring Data Neo4j的版本会根据Spring Boot版本自动匹配，使用[Maven helper](https://plugins.jetbrains.com/plugin/7179-maven-helper)分析依赖关系，确保Neo4j Java Driver的版本与Spring Data Neo4j使用的版本一致。Spring Boot版本为2.7.3，对应的Neo4j Java Driver版本为4.4.9。
 ![Analyzer](./pic-01.png)
@@ -269,7 +269,7 @@ public class NodeVO {
 }
 ```
 
-## 仓库地址
+### 项目地址
 
 这是一个用于构建知识图谱的Web服务，基于Neo4j数据库，结合了Neo4j Java Driver和Spring Data Neo4j的强大功能。
 
