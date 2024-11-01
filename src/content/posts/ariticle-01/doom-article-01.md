@@ -1,5 +1,5 @@
 ---
-title: 结合Spring Data Neo4j与Java Driver在Spring Boot中高效处理复杂Neo4j查询
+title: 结合Spring Data Neo4j与Java Driver在Spring Boot中处理复杂Neo4j查询
 published: 2024-10-31
 description: ''
 image: "./ling.jpg"
@@ -9,7 +9,7 @@ draft: false
 lang: 'zh_CN'
 ---
 
-# 结合Spring Data Neo4j与Java Driver在Spring Boot中高效处理复杂Neo4j查询
+# 结合Spring Data Neo4j与Java Driver在Spring Boot中处理复杂Neo4j查询
 
 ## Neo4j Java Driver和Spring Data Neo4j
 
