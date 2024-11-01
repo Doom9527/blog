@@ -146,7 +146,7 @@ try (Session session = driver.session(SessionConfig.builder().build())) {
 在开启查询时，创建一个 `Session` 对象。它是与数据库连接的会话，用于执行事务和查询。`SessionConfig.builder().build()` 用于配置会话，默认情况下使用默认配置。然后启动一个事务，在事务 `tx` 中执行 Cypher 查询。使用 `Record` 对象来获取查询结果。通过 `nodeExtractor` 将其转换为 `NodeVO` 对象。然后使用 `nodeExtractor.extractRelationships(record.get(Constants.RELATIONS))` 获取节点之间的关系，并将其转换为 `RelationVO` 对象，最后将这些对象添加到列表中。最后，返回一个包含所有节点和关系信息的 `GetRelationDTO` 对象。
 
 #### 事务
-这里需要注意的是，`Neo4j Java Driver` 不像 `Spring Data Neo4j` 那样由Spring提供了[@Transactional](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html)注解自动管理事务，而是需要我们手动开启事务。`Neo4j Java Driver`只有在Session域里的语句才会被事务管理，如果这是一个写的请求，我们需要把事务范围扩大到整个业务方法上，来保证操作的原子性，对于如何高效简洁地实现`Neo4j Java Driver`的事务管理，我在另一篇文章中有详细说明。
+这里需要注意的是，`Neo4j Java Driver` 不像 `Spring Data Neo4j` 那样由Spring提供了[@Transactional](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html)注解自动管理事务，而是需要我们手动开启事务。`Neo4j Java Driver`只有在Session域里的语句才会被事务管理，如果这是一个写的请求，我们需要把事务范围扩大到整个业务方法上，来保证操作的原子性，对于如何高效简洁地实现`Neo4j Java Driver`的事务管理，我在 [使用Spring AOP + 自定义注解管理Neo4j Java Driver事务](https://doom9527.github.io/blog/posts/article-02/doom-article-02/) 这篇文章中有详细说明。
 
 ### Node和Relation提取方法
 ```java
