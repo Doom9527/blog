@@ -6,7 +6,7 @@ image: "./ling.jpg"
 tags: [Java, Spring Boot, Neo4j]
 category: 'Neo4j'
 draft: false 
-lang: ''
+lang: 'zh_CN'
 ---
 
 # 在Spring Boot中同时使用Neo4j Java Driver和Spring Data Neo4j
@@ -23,6 +23,7 @@ lang: ''
 ## 检查依赖版本
 
 在添加Neo4j Java Driver依赖之前，需要检查其与Spring Data Neo4j的兼容性。由于Spring Data Neo4j的版本会根据Spring Boot版本自动匹配，使用[Maven helper](https://plugins.jetbrains.com/plugin/7179-maven-helper)分析依赖关系，确保Neo4j Java Driver的版本与Spring Data Neo4j使用的版本一致。Spring Boot版本为2.7.3，对应的Neo4j Java Driver版本为4.4.9。
+![Analyzer](./pic-01.png)
 
 ## 需求分析
 
@@ -87,14 +88,14 @@ LIMIT $limit
 
 ```java
 private static StringBuilder getFilterProperties(final String node, final Map<String, String> entries) {
-        return new StringBuilder()
-                .append("WHERE ")
-                .append(
-                        entries.entrySet().stream()
-                                .map(filter -> String.format("%s.%s = '%s'", node, filter.getKey(),
-                                        escapeSingleQuotes(filter.getValue())))
-                                .collect(Collectors.joining(" AND "))
-                );
+    return new StringBuilder()
+        .append("WHERE ")
+        .append(
+            entries.entrySet().stream()
+                .map(filter -> String.format("%s.%s = '%s'", node, filter.getKey(),
+                    escapeSingleQuotes(filter.getValue())))
+                .collect(Collectors.joining(" AND "))
+        );
 }
 ```
 
@@ -142,8 +143,11 @@ try (Session session = driver.session(SessionConfig.builder().build())) {
 }
 ```
 
-在开启查询时，使用 `try-with-resources` 语句创建一个 `Session` 对象。`Session` 是与 `Neo4j` 数据库的会话，用于执行事务和查询。`SessionConfig.builder().build()` 用于配置会话，默认情况下使用默认配置。然后启动一个事务，在事务 `tx` 中执行 Cypher 查询。这里需要注意的是，`Neo4j Java Driver` 不像 `Spring Data Neo4j` 那样由Spring提供了`@Transactional`注解自动管理事务，而是需要我们手动开启事务。`Neo4j Java Driver`只有在Session域里的语句才会被事务管理，如果这是一个写的请求，我们需要把事务范围扩大到整个业务方法上，来保证操作的原子性，对于如何高效简洁地实现`Neo4j Java Driver`的事务管理，我在另一篇文章中有详细说明。
-在处理查询结果时，使用 `Record` 对象来获取查询结果。通过 `record.get(Constants.NODE_ALIAS_N)` 获取节点对象，并通过 `nodeExtractor` 将其转换为 `NodeVO` 对象。然后使用 `nodeExtractor.extractRelationships(record.get(Constants.RELATIONS))` 获取节点之间的关系，并将其转换为 `RelationVO` 对象，最后将这些对象添加到列表中。最后，返回一个包含所有节点和关系信息的 `GetRelationDTO` 对象。
+在开启查询时，创建一个 `Session` 对象。它是与数据库连接的会话，用于执行事务和查询。`SessionConfig.builder().build()` 用于配置会话，默认情况下使用默认配置。然后启动一个事务，在事务 `tx` 中执行 Cypher 查询。使用 `Record` 对象来获取查询结果。通过 `nodeExtractor` 将其转换为 `NodeVO` 对象。然后使用 `nodeExtractor.extractRelationships(record.get(Constants.RELATIONS))` 获取节点之间的关系，并将其转换为 `RelationVO` 对象，最后将这些对象添加到列表中。最后，返回一个包含所有节点和关系信息的 `GetRelationDTO` 对象。
+
+#### 事务
+这里需要注意的是，`Neo4j Java Driver` 不像 `Spring Data Neo4j` 那样由Spring提供了[@Transactional](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html)注解自动管理事务，而是需要我们手动开启事务。`Neo4j Java Driver`只有在Session域里的语句才会被事务管理，如果这是一个写的请求，我们需要把事务范围扩大到整个业务方法上，来保证操作的原子性，对于如何高效简洁地实现`Neo4j Java Driver`的事务管理，我在另一篇文章中有详细说明。
+
 ### Node和Relation提取方法
 ```java
 public NodeVO extractNode(final Object node) {
@@ -195,44 +199,43 @@ public List<RelationVO> extractRelationships(final Value relationshipsValue) {
 ```java
 public GetRelationDTO getRelationByGraphUuid(final String uuid, final Map<String, String> properties,
                                                  final Integer pageNumber, final Integer pageSize) {
-        final int skip = (pageNumber - 1) * pageSize;
-        final int limit = pageSize;
+    final int skip = (pageNumber - 1) * pageSize;
+    final int limit = pageSize;
 
-        final StringBuilder cypherQuery = new StringBuilder("MATCH (g:Graph { uuid: $uuid })")
-                .append(" OPTIONAL MATCH (g)-[:RELATION]->(n:GraphNode) ")
-                .append(properties != null && !properties.isEmpty() ?
-                        getFilterProperties(Constants.NODE_ALIAS_N, properties) : "")
-                .append(" OPTIONAL MATCH (n)-[r:RELATION]->(:GraphNode) ")
-                .append(" WITH DISTINCT n, COLLECT(r) AS relations")
-                .append(" RETURN DISTINCT n, relations")
-                .append(" SKIP $skip ")
-                .append(" LIMIT $limit");
+    final StringBuilder cypherQuery = new StringBuilder("MATCH (g:Graph { uuid: $uuid })")
+        .append(" OPTIONAL MATCH (g)-[:RELATION]->(n:GraphNode) ")
+        .append(properties != null && !properties.isEmpty() ? getFilterProperties(Constants.NODE_ALIAS_N, properties) : "")
+        .append(" OPTIONAL MATCH (n)-[r:RELATION]->(:GraphNode) ")
+        .append(" WITH DISTINCT n, COLLECT(r) AS relations")
+        .append(" RETURN DISTINCT n, relations")
+        .append(" SKIP $skip ")
+        .append(" LIMIT $limit");
 
-        try (Session session = driver.session(SessionConfig.builder().build())) {
-            return session.readTransaction(tx -> {
-                final var result = tx.run(cypherQuery.toString(), Values.parameters(
-                        Constants.UUID, uuid,
-                        "skip", skip,
-                        "limit", limit
-                ));
+    try (Session session = driver.session(SessionConfig.builder().build())) {
+        return session.readTransaction(tx -> {
+            final var result = tx.run(cypherQuery.toString(), Values.parameters(
+                Constants.UUID, uuid,
+                    "skip", skip,
+                    "limit", limit
+            ));
 
-                final List<RelationVO> relations = new ArrayList<>();
-                final List<NodeVO> nodes = new ArrayList<>();
-                long totalCount = 0;
+            final List<RelationVO> relations = new ArrayList<>();
+            final List<NodeVO> nodes = new ArrayList<>();
+            long totalCount = 0;
 
-                while (result.hasNext()) {
-                    final Record record = result.next();
-                    final NodeVO n = nodeExtractor.extractNode(record.get(Constants.NODE_ALIAS_N));
-                    nodes.add(n);
-                    totalCount++;
+            while (result.hasNext()) {
+                final Record record = result.next();
+                final NodeVO n = nodeExtractor.extractNode(record.get(Constants.NODE_ALIAS_N));
+                nodes.add(n);
+                totalCount++;
 
-                    relations.addAll(nodeExtractor.extractRelationships(record.get(Constants.RELATIONS)));
-                }
+                relations.addAll(nodeExtractor.extractRelationships(record.get(Constants.RELATIONS)));
+            }
 
                 return new GetRelationDTO(relations, new ArrayList<>(nodes), totalCount);
-            });
-        }
+        });
     }
+}
 ```
 
 GetRelationDTO类：

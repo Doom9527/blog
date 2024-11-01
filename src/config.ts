@@ -53,7 +53,7 @@ export const navBarConfig: NavBarConfig = {
 export const profileConfig: ProfileConfig = {
   avatar: 'assets/images/doom-avatar.jpg',  // Relative to the /src directory. Relative to the /public directory if it starts with '/'
   name: 'Doom9527',
-  bio: '广东海洋大学创数软件团队队长',
+  bio: '00年代 FSB/MVD 装备收集者',
   links: [
     {
       name: 'Twitter',
