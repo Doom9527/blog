@@ -8,6 +8,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab on GitHub.
   workflow_dispatch:
 
+env:
+  USER: Doom9527
+  EMAIL: wpan865@gmail.com
+
 # Allow this job to clone the repo and create a page deployment
 permissions:
   contents: read
@@ -52,3 +56,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          user_name: ${{ env.USER }}
+          user_email: ${{ env.EMAIL }}
