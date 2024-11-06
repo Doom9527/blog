@@ -1,9 +1,13 @@
-# About
-This is the demo site for [Fuwari](https://github.com/saicaca/fuwari).
+# 关于
+[Doom9527](https://github.com/Doom9527) 的博客。
 
-::github{repo="saicaca/fuwari"}
+[//]: # (::github{repo="saicaca/fuwari"})
 
-> ### Sources of images used in this site
-> - [Unsplash](https://unsplash.com/)
-> - [星と少女](https://www.pixiv.net/artworks/108916539) by [Stella](https://www.pixiv.net/users/93273965)
-> - [Rabbit - v1.4 Showcase](https://civitai.com/posts/586908) by [Rabbit_YourMajesty](https://civitai.com/user/Rabbit_YourMajesty)
+[//]: # ()
+[//]: # (> ### Sources of images used in this site)
+
+[//]: # (> - [Unsplash]&#40;https://unsplash.com/&#41;)
+
+[//]: # (> - [星と少女]&#40;https://www.pixiv.net/artworks/108916539&#41; by [Stella]&#40;https://www.pixiv.net/users/93273965&#41;)
+
+[//]: # (> - [Rabbit - v1.4 Showcase]&#40;https://civitai.com/posts/586908&#41; by [Rabbit_YourMajesty]&#40;https://civitai.com/user/Rabbit_YourMajesty&#41;)

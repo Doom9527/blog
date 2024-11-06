@@ -9,24 +9,26 @@ draft: false
 lang: 'zh_CN'
 ---
 
-# 使用Spring AOP + 自定义注解管理Neo4j Java Driver事务
+# 使用Spring AOP与自定义注解管理Neo4j Java Driver事务
 
-## 事务
-事务是数据库管理系统中用于保证数据一致性和完整性的机制。它将多个操作看成一个整体，确保这些操作要么全部成功，要么全部失败。事务的四大特性（ACID）是：
+## 事务管理概述
+事务是数据库操作中的一个关键概念，它保证了一组操作要么全部成功，要么全部失败，从而保证数据的完整性和一致性。事务具备以下四大特性（ACID）：
 1. **原子性（Atomicity）**: 事务是一个不可分割的工作单位，事务中的操作要么全部完成，要么全部不完成，系统不会处于不一致的状态。
 2. **一致性（Consistency）**: 事务必须使数据库从一个一致性状态变到另一个一致性状态，确保数据的完整性。
 3. **原子性（Atomicity）**: 事务的执行是独立的，一个事务的执行不会受到其他事务的干扰。
 4. **持久性（Durability）**: 一旦事务提交，其对数据库的更改将是永久的，即使系统发生故障也不会丢失。
 
+数据库开发中，事务管理对于数据的安全性和一致性至关重要。尤其在分布式系统中，事务的管理更加复杂，需要通过合理的设计来保障系统的一致性。
+
 ## Spring 框架的@Transcational注解
-[@Transactional][@Transactional] 注解是 Spring 框架提供的一个用于管理事务的注解。它可以应用于方法或类级别，确保方法中的数据库操作在一个事务中执行。`@Transactional` 可以与多种数据访问技术一起使用，包括 [MyBatis](https://mybatis.org/mybatis-3/)、[JPA](https://www.oracle.com/java/technologies/persistence-jsp.html)、[Spring Data Neo4j](https://docs.spring.io/spring-data/neo4j/reference/getting-started.html) 等。
+[@Transactional][@Transactional] 注解是 Spring 框架提供的一个用于管理事务的注解。它可以应用于方法或类级别，确保方法中的数据库操作在一个事务中执行。`@Transactional` 可以与多种数据访问技术（[MyBatis](https://mybatis.org/mybatis-3/)、[JPA](https://www.oracle.com/java/technologies/persistence-jsp.html)、[Spring Data Neo4j](https://docs.spring.io/spring-data/neo4j/reference/getting-started.html)）结合使用，帮助我们简化事务的管理。
 `@Transactional` 可以与这些框架无缝集成。例如，当你在使用 `MyBatis` 的 `DAO` 或 `Mapper` 方法时，可以在服务层的方法上使用 `@Transactional` 注解，确保多个数据库操作在一个事务中执行。
 
 ## Neo4j Java Driver的事务
-在[Neo4j Java Transactions](https://neo4j.com/docs/java-manual/current/transactions/) 文档中，有提到，只有在 [Session][Session] 中才能保证事务的正确性和有效性，事务中的查询将作为一个整体执行，或者根本不执行。在使用 Neo4j Java Driver 时，事务是与 Session 绑定的，所以我们不能在Spring Boot中使用 `@Transactional` 注解来管理 Neo4j Java Driver 事务，必须使用 Session 来手动管理事务。
+[Neo4j Java Transactions](https://neo4j.com/docs/java-manual/current/transactions/) 中，只有在 [Session][Session] 中才能保证事务的正确性和有效性，事务中的查询将作为一个整体执行，或者根本不执行。在使用 Neo4j Java Driver 时，事务是与 Session 绑定的，所以我们不能在Spring Boot中使用 `@Transactional` 注解来管理 Neo4j Java Driver 事务，必须使用 Session 来手动管理事务。
 
-## 在读操作中开启事务
-在使用 `neo4j-java-driver` 进行读操作时，事务的范围可以根据实际需求进行灵活控制。可以选择将事务范围限定在具体的查询操作上，而不是整个业务方法。这样可以提高代码的可读性和性能，避免不必要的事务开销。
+## 读操作中的事务
+使用 `neo4j-java-driver` 进行读操作时，事务的范围可以根据实际需求进行灵活控制。可以选择将事务范围限定在具体的查询操作上，而不是整个业务方法。这样可以提高代码的可读性和性能，避免不必要的事务开销。
 
 ### 添加neo4j-java-driver依赖
 ```xml
@@ -45,7 +47,7 @@ public Optional<NodeVO> getNodeByUuid(final String uuid) {
 }
 ```
 
-### 数据层代码
+### 数据访问层代码（读操作）
 ```java
 public NodeVO getNodeByUuid(final String uuid) {
     final String cypherQuery = "MATCH (n:GraphNode { uuid: $uuid }) RETURN n";
@@ -85,7 +87,7 @@ public NodeVO extractNode(final Object node) {
 
 在 Neo4j 中，使用 `readTransaction` 方法可以在只读操作中提供一种简单的事务管理机制，以确保在该操作期间不会发生数据变化，从而提供了一种一致性保障。
 
-## 在写操作中开启事务
+## 写操作中的事务
 Neo4j Java Driver 提供了 `writeTransaction` 方法，用于在写操作中开启事务。在 Neo4j 中，使用此方法可以在进行写操作时提供一种简单的事务管理机制，以确保在该操作期间不会发生数据变化，从而提供了一种一致性保障。
 
 ### 业务层代码
@@ -116,7 +118,7 @@ public void updateNode(final NodeUpdateDTO nodeUpdateDTO) {
 }
 ```
 
-### 数据层代码
+### 数据访问层代码（写操作）
 ```java
 public void updateNodeByUuid(final NodeUpdateDTO nodeUpdateDTO, final String currentTime, final Transaction tx) {
     final StringBuilder setProperties = getSetProperties(nodeUpdateDTO.getProperties().entrySet());
@@ -135,9 +137,13 @@ public void updateNodeByUuid(final NodeUpdateDTO nodeUpdateDTO, final String cur
 ```
 
 通过在 `updateNode` 上开启一个 `Session` 级别的事务，将 `Transaction tx` 传递给 `nodeMapper`，我们可以确保整个业务流程在事务内对数据库的操作是原子性的，要么全部执行，要么全部不执行。
-但我们也可以通过 [Spring AOP](https://docs.spring.io/spring-framework/reference/core/aop.html) 结合自定义注解的方式来管理事务，从而避免在每个服务方法中显式地使用 Session 和事务。这可以使代码更加整洁，减少重复代码。
+我们也可以通过  结合自定义注解的方式来管理事务，从而避免在每个服务方法中显式地使用 Session 和事务。这可以使代码更加整洁，减少重复代码。
 
-### 配置自定义注解
+## 使用Spring AOP和自定义注解简化事务管理
+为了避免每个服务方法都显式地管理事务，我们可以结合[Spring AOP](https://docs.spring.io/spring-framework/reference/core/aop.html)和自定义注解来自动化事务管理，从而避免在每个服务方法中显式地使用 Session 和事务，使代码更加简洁，事务的控制也变得更加模块化。
+
+### 自定义注解
+首先，我们定义一个自定义注解`@Neo4jTransactional`，用于标识需要进行事务管理的方法。
 ```java
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -146,11 +152,10 @@ public @interface Neo4jTransactional {
 ```
 
 ### Spring AOP
-Spring框架的两大核心机制是 `AOP面向切面编程` 和 `IOC控制反转`。
-AOP是一种编程范式，旨在通过将 `横切关注点（cross-cutting concerns）` 从业务逻辑中分离出来，提高代码的模块化程度。横切关注点是指那些影响多个模块的功能，例如日志记录、事务管理、安全检查等。AOP通过将这些横切关注点封装在独立的模块中，使得业务逻辑更加清晰和简洁。
+AOP是Spring框架的核心机制之一，旨在通过将 `横切关注点（cross-cutting concerns）` 从业务逻辑中分离出来，提高代码的模块化程度。横切关注点是指那些影响多个模块的功能，例如日志记录、事务管理、安全检查等。AOP通过将这些横切关注点封装在独立的模块中，使得业务逻辑更加清晰和简洁。
 我们可以将 Neo4j Java 的 `Session` 抽取出来，以注解的方式作用到目标的 `Service` 方法上，实现事务管理。
 
-### 添加Spring AOP依赖
+#### 添加Spring AOP依赖
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -158,7 +163,7 @@ AOP是一种编程范式，旨在通过将 `横切关注点（cross-cutting conc
 </dependency>
 ```
 
-### 切面类
+#### 切面类
 ```java
 @Aspect
 @Component
