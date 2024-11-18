@@ -1,5 +1,5 @@
 # 关于
-[Doom9527](https://github.com/Doom9527) 的博客。
+[Doom9527](https://github.com/Doom9527) ，一个热爱技术的开发者、没毕业的大学生。
 
 [//]: # (::github{repo="saicaca/fuwari"})
 
