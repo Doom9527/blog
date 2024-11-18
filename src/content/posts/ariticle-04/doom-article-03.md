@@ -12,9 +12,9 @@ lang: 'zh_CN'
 # 使用 Redis 和 Caffeine 构建多级缓存
 在分布式系统中，缓存是提升性能、降低数据库压力的关键组件。通过缓存，我们可以快速响应用户请求，避免对数据库的频繁访问。本文将介绍如何使用 Redis 和 Caffeine 构建多级缓存，探索其原理和实现。
 
-## 一、什么是 Redis 和 Caffeine？
+## 一、什么是 [Redis][Redis] 和 [Caffeine][Caffeine]？
 ### 1. Redis
-Redis 是一个基于内存的高性能分布式缓存系统。它支持多种数据结构（如字符串、哈希、列表、集合等），拥有强大的持久化和分布式特性。Redis 常用来作为一级缓存，也可以用于存储全局会话、限流等场景。
+[Redis][Redis] 是一个基于内存的高性能分布式缓存系统。它支持多种数据结构（如字符串、哈希、列表、集合等），拥有强大的持久化和分布式特性。Redis 常用来作为一级缓存，也可以用于存储全局会话、限流等场景。
 
 ### 特点
 - 数据存储在内存中，读写速度极快。
@@ -22,7 +22,7 @@ Redis 是一个基于内存的高性能分布式缓存系统。它支持多种�
 - 支持丰富的数据结构和 Lua 脚本扩展。
 
 ### 2.Caffeine
-Caffeine 是 Java 平台上一款高效的本地缓存库，由 Google Guava Cache 的作者开发。它专为高性能设计，常用于应用的本地缓存层。Caffeine 提供丰富的特性，如 LRU、LFU 淘汰策略和异步加载。
+[Caffeine][Caffeine] 是 Java 平台上一款高效的本地缓存库，由 Google Guava Cache 的作者开发。它专为高性能设计，常用于应用的本地缓存层。Caffeine 提供丰富的特性，如 LRU、LFU 淘汰策略和异步加载。
 
 ### 特点
 - 本地缓存（存储在 JVM 内存中），访问延迟极低。
@@ -73,6 +73,8 @@ Caffeine 是 Java 平台上一款高效的本地缓存库，由 Google Guava Cac
     <artifactId>spring-boot-starter-cache</artifactId>
 </dependency>
 ```
+
+[spring-boot-starter-cache](https://docs.spring.io/spring-boot/reference/io/caching.html)提供了自动配置和一些默认的缓存管理器实现。
 
 #### （2）配置 Caffeine 缓存
 在 `application.yml` 中添加缓存配置：
@@ -140,6 +142,17 @@ public class UserService {
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-data-redis</artifactId>
 </dependency>
+<!--common-pool-->
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-pool2</artifactId>
+</dependency>
+<!--jackson-->
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+</dependency>
+
 <dependency>
     <groupId>com.github.ben-manes.caffeine</groupId>
     <artifactId>caffeine</artifactId>
@@ -151,14 +164,20 @@ public class UserService {
 ```yaml
 spring:
   redis:
-    host: localhost
-    port: 6379
+  host: 127.0.0.1
+  port: 6379
+  lettuce:
+    pool:
+      max-active: 8
+      max-idle: 8
+      min-idle: 0
+      max-wait: 100ms
   caffeine:
     spec: maximumSize=1000,expireAfterWrite=5m
 ```
 
 #### （3）实现多级缓存管理
-多级缓存需要通过手动管理，无法仅依赖注解。我们可以通过一个缓存服务类实现多级缓存逻辑。
+多级缓存需要通过手动管理，无法仅依赖注解。我们可以通过创建缓存工具类实现多级缓存逻辑。
 
 ```java
 @Component
@@ -214,12 +233,10 @@ public class MultiLevelCache {
 @Service
 public class UserService {
 
+    @Autowired
     private final MultiLevelCache multiLevelCache;
-    private final Map<Long, User> database = new HashMap<>();
 
-    public UserService(MultiLevelCache multiLevelCache) {
-        this.multiLevelCache = multiLevelCache;
-    }
+    private final Map<Long, User> database = new HashMap<>();
 
     public User getUserById(Long id) {
         String key = "user:" + id;
@@ -250,3 +267,6 @@ public class UserService {
     }
 }
 ```
+
+[Redis]:https://redis.io/
+[Caffeine]:https://www.baeldung.com/java-caching-caffeine
