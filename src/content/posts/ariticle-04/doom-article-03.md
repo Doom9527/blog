@@ -271,5 +271,5 @@ public class UserService {
 ## 五、总结
 通过 Redis 和 Caffeine 构建多级缓存，我们结合了本地缓存的高性能和分布式缓存的高容量特性。在实际应用中，多级缓存策略能够显著提高系统的响应速度，同时降低对数据库和远程缓存的依赖。
 
-[Redis]:https://redis.io/
-[Caffeine]:https://www.baeldung.com/java-caching-caffeine
+[Redis]: https://redis.io/
+[Caffeine]: https://www.baeldung.com/java-caching-caffeine
