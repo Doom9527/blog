@@ -1,8 +1,8 @@
 ---
-title: Redis与Caffeine构建多级缓存
+title: 使用 Redis 和 Caffeine 构建多级缓存
 published: 2024-11-18
 description: ''
-image: ''
+image: './pic.jpg'
 tags: [Java, Redis, Caffeine]
 category: 'Cache'
 draft: false 
